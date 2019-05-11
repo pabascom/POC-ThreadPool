@@ -9,10 +9,7 @@ import android.support.annotation.UiThread
 import android.support.annotation.WorkerThread
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,16 +17,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val barFiller1 = BarFiller { pbTask1.progress = it }
-        val barFiller2 = BarFiller { pbTask2.progress = it }
-        val barFiller3 = BarFiller { pbTask3.progress = it }
-        val barFiller4 = BarFiller { pbTask4.progress = it }
+        val barFillers = listOf(
+            BarFiller { pbTask1.progress = it },
+            BarFiller { pbTask2.progress = it },
+            BarFiller { pbTask3.progress = it },
+            BarFiller { pbTask4.progress = it }
+        )
 
         btnTaskScheduler.setOnClickListener {
-            Thread(barFiller1).start()
-            Thread(barFiller2).start()
-            Thread(barFiller3).start()
-            Thread(barFiller4).start()
+            barFillers.map { RACECONDITIONALS.submit(it) }
         }
 
         btnNumberChooser.setOnClickListener {
@@ -38,27 +34,22 @@ class MainActivity : AppCompatActivity() {
             }.execute()
         }
 
-        val bgDispatcher: CoroutineDispatcher = Dispatchers.IO
-        val bgScope = CoroutineScope(bgDispatcher)
-
-
-
-        fun showFib(result: Long) {
-            pbFibonacci.visibility = View.INVISIBLE
-            tvFibonacci.text = result.toString()
-        }
-
-        suspend fun calculateFibonacci(int: Int){
-            val fib = fibFinder(int)
-            showFib(fib)
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        var fib = 0L
+        fun launchFibFinder(int: Int) {
+            uiScope.launch {
+                tvFibonacci.text = ""
+                pbFibonacci.visibility = View.VISIBLE
+                withContext(Dispatchers.IO) {
+                    fib = fibFinder(int)
+                }
+                pbFibonacci.visibility = View.INVISIBLE
+                tvFibonacci.text = fib.toString()
+            }
         }
 
         btnFibonacci.setOnClickListener {
-            tvFibonacci.text=""
-            pbFibonacci.visibility = View.VISIBLE
-            bgScope.launch {
-                calculateFibonacci(etFibonacci.text.toString().toInt())
-            }
+            launchFibFinder(etFibonacci.text.toString().toInt())
         }
     }
 }
