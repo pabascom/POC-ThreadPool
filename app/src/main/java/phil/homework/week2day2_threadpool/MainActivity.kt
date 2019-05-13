@@ -10,8 +10,9 @@ import android.support.annotation.WorkerThread
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispatchers.Main) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,13 +35,12 @@ class MainActivity : AppCompatActivity() {
             }.execute()
         }
 
-        val uiScope = CoroutineScope(Dispatchers.Main)
         var fib = 0L
         fun launchFibFinder(int: Int) {
-            uiScope.launch {
+            launch {
                 tvFibonacci.text = ""
                 pbFibonacci.visibility = View.VISIBLE
-                withContext(Dispatchers.IO) {
+                withContext(Dispatchers.Default) {
                     fib = fibFinder(int)
                 }
                 pbFibonacci.visibility = View.INVISIBLE
