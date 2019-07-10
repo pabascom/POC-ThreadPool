@@ -1,7 +1,5 @@
-# Week2Day3ThreadPooling
-Containing Multithreading code challenges
-
-## Assignment:
+# POC Thread Pooling
+## Challenge:
 Complete the following Android application
 1. Create an app to use Thread pool executor
 2. Should start 4 threads in parallel
